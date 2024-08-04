@@ -1,0 +1,10 @@
+{
+	"extends": ["@cvr/config/typescript/app"],
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"paths": {
+			"~/*": ["./*"]
+		}
+	},
+	"include": ["**/*.ts", "**/*.tsx"]
+}

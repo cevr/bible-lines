@@ -1,0 +1,56 @@
+{
+  "name": "bible-lines",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "imports": {
+    "~/*": "./*"
+  },
+  "prettier": "@cvr/config/prettier",
+  "scripts": {
+    "build": "remix vite:build",
+    "dev": "remix vite:dev",
+    "start": "remix-serve ./build/server/index.js",
+    "format": "prettier --write .",
+    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.8.1",
+    "@remix-run/node": "^2.11.0",
+    "@remix-run/react": "^2.11.0",
+    "@remix-run/serve": "^2.11.0",
+    "dotenv": "^16.4.5",
+    "drizzle-kit": "^0.23.1",
+    "drizzle-orm": "^0.32.1",
+    "isbot": "^5.1.13",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "valibot": "^0.37.0"
+  },
+  "devDependencies": {
+    "@cvr/config": "^0.2.0",
+    "@remix-run/dev": "^2.11.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.8.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "postcss": "^8.4.40",
+    "prettier": "^3.3.3",
+    "remix-flat-routes": "^0.6.5",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.5.4",
+    "vite": "^5.3.5",
+    "vite-tsconfig-paths": "^4.3.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
