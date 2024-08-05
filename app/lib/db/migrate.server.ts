@@ -16,33 +16,6 @@ async function main() {
 	const db = drizzle(client, { schema });
 
 	await migrate(db, { migrationsFolder: 'app/db/migrations' });
-
-	console.log('🌿 Seeding database');
-
-	await db
-		.insert(schema.countries)
-		.values({
-			id: 1,
-			name: 'USA',
-		})
-		.onConflictDoNothing();
-
-	await db
-		.insert(schema.countries)
-		.values({
-			id: 2,
-			name: 'Kyrgyzstan',
-		})
-		.onConflictDoNothing();
-
-	await db
-		.insert(schema.users)
-		.values({
-			id: 1,
-			email: 'hello@cvr.im',
-			password: '!StrongPassword01',
-		})
-		.onConflictDoNothing();
 }
 
 void main();
