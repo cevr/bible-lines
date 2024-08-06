@@ -18,10 +18,12 @@
     "migrations:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.40",
     "@libsql/client": "^0.8.1",
     "@remix-run/node": "^2.11.0",
     "@remix-run/react": "^2.11.0",
     "@remix-run/serve": "^2.11.0",
+    "ai": "^3.3.0",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.23.1",
     "drizzle-orm": "^0.32.1",

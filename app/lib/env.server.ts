@@ -18,6 +18,7 @@ const EnvSchema = v.object({
 	APP_ENV: v.enum(AppEnv),
 	DB_URL: v.string(),
 	DB_AUTH_TOKEN: v.string(),
+	OPEN_AI_API_KEY: v.string(),
 });
 
 export const Env = v.parse(EnvSchema, process.env);

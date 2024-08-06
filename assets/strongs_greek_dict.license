@@ -1,0 +1,29 @@
+/**
+ *                      Dictionary of Greek Words
+ *                              taken from
+ *                    Strong's Exhaustive Concordance
+ *                                   by
+ *                      James Strong, S.T.D., LL.D.
+ *                                  1890
+ *
+ * JSON version
+ * ============
+ * Copyright 2009, Open Scriptures. CC-BY-SA. Derived from XML.
+ * $Id$
+ *
+ * XML e-text version
+ * ==================
+ *
+ * The XML version of this work was prepared in 2006 by Ulrik Petersen
+ * (http://ulrikp.org) from the ASCII e-text version presented below.
+ * The XML version contains "real" UTF-8 Greek where the original ASCII
+ * e-text version had transliteration.  The XML has a stand-alone DTD
+ * which should be easy to follow.
+ *
+ * Ulrik Petersen welcomes bugfixes to the text.  Please send them to the
+ * address provided on the website:
+ *
+ * http://ulrikp.org
+ *
+ * Ulrik Petersen
+ */
