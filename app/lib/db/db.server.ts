@@ -136,6 +136,7 @@ const make = Effect.gen(function* () {
 				semanticSearch: (version: BibleVersion, query: string, k = 5) =>
 					Effect.gen(function* () {
 						const result = yield* openai.embed(query);
+						const embedding = new Float32Array(result.embedding).buffer;
 
 						return yield* Effect.tryPromise({
 							try: async () => {
@@ -143,8 +144,7 @@ const make = Effect.gen(function* () {
 									columns: {
 										embedding: false,
 									},
-									where: (verses, { eq }) => eq(verses.version, version),
-									orderBy: sql`vector_distance_cos(embedding, vector(${new Float32Array(result.embedding).buffer}))`,
+									orderBy: sql`vector_distance_cos(embedding, vector(${embedding}))`,
 									limit: k,
 								});
 							},

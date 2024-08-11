@@ -37,7 +37,7 @@ const main = Effect.gen(function* () {
 								verse.book,
 								verse.chapter,
 								verse.verse,
-								new Float32Array(embedding),
+								new Float32Array(embedding).buffer,
 							)
 							.pipe(
 								Effect.tapError((error) => {
