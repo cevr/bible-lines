@@ -12,7 +12,16 @@ export class OpenAIError extends Data.TaggedError('OpenAIError')<{
 const make = Effect.gen(function* () {
 	const env = yield* Env;
 	return yield* Effect.succeed({
-		embed: (text: string, size: 'small' | 'large' = 'small') =>
+		embed: (
+			text: string,
+			{
+				size = 'small',
+				dimensions = 256,
+				...opts
+			}: {
+				size?: 'small' | 'large';
+			} & Parameters<typeof openai.embedding>[1] = {},
+		) =>
 			Effect.tryPromise({
 				try: async (signal) => {
 					return await embed({
@@ -20,6 +29,10 @@ const make = Effect.gen(function* () {
 							size === 'small'
 								? 'text-embedding-3-small'
 								: 'text-embedding-3-large',
+							{
+								...opts,
+								dimensions,
+							},
 						),
 						value: text,
 						abortSignal: signal,
@@ -35,14 +48,27 @@ const make = Effect.gen(function* () {
 					});
 				},
 			}).pipe(Effect.withSpan('openai.embed')),
-		embedMany: (texts: string[], size: 'small' | 'large' = 'small') =>
+		embedMany: (
+			texts: string[],
+			{
+				size = 'small',
+				dimensions = 256,
+				...opts
+			}: {
+				size?: 'small' | 'large';
+			} & Parameters<typeof openai.embedding>[1] = {},
+		) =>
 			Effect.tryPromise({
 				try: async (signal) => {
 					return await embedMany({
 						model: openai.embedding(
-							size === 'small'
-								? 'text-embedding-3-small'
-								: 'text-embedding-3-large',
+							size === 'large'
+								? 'text-embedding-3-large'
+								: 'text-embedding-3-small',
+							{
+								...opts,
+								dimensions,
+							},
 						),
 						values: texts,
 						abortSignal: signal,
