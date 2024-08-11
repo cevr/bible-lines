@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d175c01b-a886-4a55-a6e9-5edf42fea54a",
+  "id": "bc1eb43b-bccf-429e-9ae6-0cf731bc853b",
   "prevId": "5852c5be-3c41-4b5e-a1ae-90008e48dc9d",
   "tables": {
     "users": {
@@ -108,13 +108,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "embedding": {
-          "name": "embedding",
-          "type": "F32_BLOB(64)",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         }
       },

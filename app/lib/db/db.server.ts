@@ -1,8 +1,9 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { Context, Data, Effect, Layer } from 'effect';
 
 import { BibleBookNameToNumberMap } from '../bible';
 import type { BibleVersion } from '../bible';
+import { OpenAI } from '../openai';
 import { DatabaseClient } from './db-client.server';
 import { verses } from './schema.server';
 
@@ -25,7 +26,7 @@ const makeId = (book: number, chapter: number, verse: number) =>
 
 const make = Effect.gen(function* () {
 	const db = yield* DatabaseClient;
-	// const openai = yield* OpenAI;
+	const openai = yield* OpenAI;
 
 	return {
 		client: db,
@@ -127,26 +128,29 @@ const make = Effect.gen(function* () {
 						},
 					}).pipe(Effect.withSpan('updateVerseEmbedding')),
 
-				// semanticSearch: (version, query, k = 5) =>
-				// 	Effect.gen(function* () {
-				// 		const result = yield* openai.embed(query);
+				semanticSearch: (version: BibleVersion, query: string, k = 5) =>
+					Effect.gen(function* () {
+						const result = yield* openai.embed(query);
 
-				// 		return yield* Effect.tryPromise({
-				// 			try: async () => {
-				// 				return (await db.all(sql`
-				// 			    SELECT id, book, chapter, verse, text, version
-				// 				FROM verses
-				// 				WHERE rowid
-				// 				IN vector_top_k('verses_embedding_idx', vector('${JSON.stringify(result.embedding)}'), ${k});`)) as Verse[];
-				// 			},
-				// 			catch: (error) => {
-				// 				return new DatabaseError({
-				// 					message: `Failed to search for verse in version ${version} with query ${query}`,
-				// 					cause: error,
-				// 				});
-				// 			},
-				// 		}).pipe(Effect.withSpan('semanticVerseSearch'));
-				// 	}),
+						return yield* Effect.tryPromise({
+							try: async () => {
+								return await db.query.verses.findMany({
+									columns: {
+										embedding: false,
+									},
+									where: (verses, { eq }) => eq(verses.version, version),
+									orderBy: sql`vector_distance_cos(embedding, vector(${new Float32Array(result.embedding).buffer}))`,
+									limit: k,
+								});
+							},
+							catch: (error) => {
+								return new DatabaseError({
+									message: `Failed to search for verse in version ${version} with query ${query}`,
+									cause: error,
+								});
+							},
+						}).pipe(Effect.withSpan('semanticVerseSearch'));
+					}),
 			},
 			book: {
 				get: (version: BibleVersion, book: number) =>
@@ -177,6 +181,9 @@ const make = Effect.gen(function* () {
 							Effect.tryPromise({
 								try: async () => {
 									return await db.query.verses.findMany({
+										columns: {
+											embedding: false,
+										},
 										where: (verses, { eq, and }) =>
 											and(eq(verses.version, version), eq(verses.book, book)),
 										orderBy: (verses, { asc }) => [

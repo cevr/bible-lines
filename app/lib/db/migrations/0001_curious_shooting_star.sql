@@ -1,0 +1,1 @@
+CREATE INDEX `book_version_idx` ON `verses` (`book`,`version`);

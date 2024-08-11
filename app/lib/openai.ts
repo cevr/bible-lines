@@ -4,6 +4,12 @@ import { Context, Data, Effect, Layer } from 'effect';
 
 import { Env } from './env.server';
 
+const OpenAIEmbedModel = {
+	Large: 'large',
+	Small: 'small',
+} as const;
+export type OpenAIEmbedModel =
+	(typeof OpenAIEmbedModel)[keyof typeof OpenAIEmbedModel];
 export class OpenAIError extends Data.TaggedError('OpenAIError')<{
 	message: string;
 	cause: unknown;
@@ -15,23 +21,21 @@ const make = Effect.gen(function* () {
 		embed: (
 			text: string,
 			{
-				size = 'small',
-				dimensions = 256,
+				size = OpenAIEmbedModel.Large,
 				...opts
 			}: {
-				size?: 'small' | 'large';
+				size?: OpenAIEmbedModel;
 			} & Parameters<typeof openai.embedding>[1] = {},
 		) =>
 			Effect.tryPromise({
 				try: async (signal) => {
 					return await embed({
 						model: openai.embedding(
-							size === 'small'
-								? 'text-embedding-3-small'
-								: 'text-embedding-3-large',
+							size === OpenAIEmbedModel.Large
+								? 'text-embedding-3-large'
+								: 'text-embedding-3-small',
 							{
 								...opts,
-								dimensions,
 							},
 						),
 						value: text,
@@ -51,23 +55,21 @@ const make = Effect.gen(function* () {
 		embedMany: (
 			texts: string[],
 			{
-				size = 'small',
-				dimensions = 256,
+				size = OpenAIEmbedModel.Large,
 				...opts
 			}: {
-				size?: 'small' | 'large';
+				size?: OpenAIEmbedModel;
 			} & Parameters<typeof openai.embedding>[1] = {},
 		) =>
 			Effect.tryPromise({
 				try: async (signal) => {
 					return await embedMany({
 						model: openai.embedding(
-							size === 'large'
+							size === OpenAIEmbedModel.Large
 								? 'text-embedding-3-large'
 								: 'text-embedding-3-small',
 							{
 								...opts,
-								dimensions,
 							},
 						),
 						values: texts,
@@ -91,9 +93,6 @@ export class OpenAI extends Context.Tag('OpenAI')<
 	OpenAI,
 	Effect.Effect.Success<typeof make>
 >() {
-	static Live = Layer.effect(OpenAI, make);
-}
-
-export namespace OpenAI {
-	export type Make = typeof make;
+	static Live = Layer.effect(this, make);
+	static EmbedModel = OpenAIEmbedModel;
 }

@@ -65,7 +65,7 @@ export const BibleBookNumberToNameMap = {
 	[64]: '3 John',
 	[65]: 'Jude',
 	[66]: 'Revelation',
-};
+} as Record<number, string>;
 
 export const BibleBookNameToNumberMap = {
 	Genesis: 1,

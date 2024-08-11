@@ -9,50 +9,54 @@ const main = Effect.gen(function* () {
 	const openai = yield* OpenAI;
 	const database = yield* Database;
 	const books = yield* database.bible.book.all(BibleVersion.KJV);
-	let total = books.length;
-	let count = 0;
-	yield* Console.log(`Embedding ${total} books`);
+	let totalBooks = books.length;
+	let bookCount = 0;
+	yield* Console.log(`Embedding ${totalBooks} books`);
 	yield* Effect.all(
 		books.map((verses) =>
-			openai.embedMany(verses.map((verse) => verse.text)).pipe(
-				Effect.tap(
-					Console.log(
-						`Retrieved ${verses.length} embeddings for book ${BibleBookNumberToNameMap[verses[0]?.book as any]}`,
-					),
-				),
-				Effect.flatMap((results) => {
-					let total = results.embeddings.length;
-					let count = 0;
-					return Effect.all(
-						results.embeddings.map((embedding, index) => {
-							const verse = verses[index]!;
-							return database.bible.verse
-								.updateEmbedding(
-									BibleVersion.KJV,
-									verse.book,
-									verse.chapter,
-									verse.verse,
-									new Float32Array(embedding),
-								)
-								.pipe(
-									Effect.tap(
-										Console.log(
-											`Embedded ${++count} of ${total} verses in book`,
-										),
+			Effect.gen(function* () {
+				const book =
+					BibleBookNumberToNameMap[
+						verses[0]?.book as keyof typeof BibleBookNumberToNameMap
+					]!;
+				const results = yield* openai.embedMany(
+					verses.map((verse) => verse.text),
+				);
+				yield* Console.log(
+					`Retrieved ${verses.length} embeddings for book ${book}`,
+				);
+
+				let totalVerses = results.embeddings.length;
+				let versesCount = 0;
+				yield* Effect.all(
+					results.embeddings.map((embedding, index) => {
+						const verse = verses[index]!;
+						return database.bible.verse
+							.updateEmbedding(
+								BibleVersion.KJV,
+								verse.book,
+								verse.chapter,
+								verse.verse,
+								new Float32Array(embedding),
+							)
+							.pipe(
+								Effect.tap(
+									Console.log(
+										`Embedded ${++versesCount} of ${totalVerses} verses in book ${book}`,
 									),
-									Effect.tapError((error) => {
-										return Console.error(error);
-									}),
-									Effect.orDie,
-								);
-						}),
-						{
-							concurrency: 250,
-						},
-					).pipe(Effect.orDie);
-				}),
-				Effect.tap(Console.log(`Embedded ${++count} of ${total}`)),
-			),
+								),
+								Effect.tapError((error) => {
+									return Console.error(error);
+								}),
+								Effect.orDie,
+							);
+					}),
+					{
+						concurrency: 250,
+					},
+				).pipe(Effect.orDie);
+				yield* Console.log(`Embedded ${++bookCount} of ${totalBooks}`);
+			}),
 		),
 		{
 			concurrency: 1,
@@ -60,4 +64,4 @@ const main = Effect.gen(function* () {
 	);
 });
 
-Effect.runPromise(Effect.provide(main, AppLayerLive));
+void Effect.runPromise(Effect.provide(main, AppLayerLive));

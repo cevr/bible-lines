@@ -41,9 +41,9 @@ export const verses = sqliteTable(
 		version: text('version', {
 			enum: Object.values(BibleVersion) as [BibleVersion, ...BibleVersion[]],
 		}).notNull(), // e.g. 'KJV'
-		embedding: vector('embedding', {
-			length: 64,
-		}), // e.g. [0.1, 0.2, 0.3]
+		// embedding: vector('embedding', {
+		// 	length: 3072,
+		// }), // e.g. [0.1, 0.2, 0.3]
 	},
 	(verses) => ({
 		idVersionIndex: uniqueIndex('id_version_idx').on(verses.id, verses.version),
