@@ -19,9 +19,9 @@ const main = Effect.gen(function* () {
 					BibleBookNumberToNameMap[
 						verses[0]?.book as keyof typeof BibleBookNumberToNameMap
 					]!;
-				const results = yield* openai.embedMany(
-					verses.map((verse) => verse.text),
-				);
+				const results = yield* openai
+					.embedMany(verses.map((verse) => verse.text))
+					.pipe(Effect.orDie);
 				yield* Console.log(
 					`Retrieved ${verses.length} embeddings for book ${book}`,
 				);
@@ -40,15 +40,15 @@ const main = Effect.gen(function* () {
 								new Float32Array(embedding),
 							)
 							.pipe(
+								Effect.tapError((error) => {
+									return Console.error(error);
+								}),
+								Effect.orDie,
 								Effect.tap(
 									Console.log(
 										`Embedded ${++versesCount} of ${totalVerses} verses in book ${book}`,
 									),
 								),
-								Effect.tapError((error) => {
-									return Console.error(error);
-								}),
-								Effect.orDie,
 							);
 					}),
 					{

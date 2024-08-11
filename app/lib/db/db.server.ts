@@ -126,7 +126,12 @@ const make = Effect.gen(function* () {
 								cause: error,
 							});
 						},
-					}).pipe(Effect.withSpan('updateVerseEmbedding')),
+					}).pipe(
+						Effect.retry({
+							times: 3,
+						}),
+						Effect.withSpan('updateVerseEmbedding'),
+					),
 
 				semanticSearch: (version: BibleVersion, query: string, k = 5) =>
 					Effect.gen(function* () {
