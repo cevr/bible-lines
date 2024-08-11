@@ -2,12 +2,14 @@ import type { Config } from 'drizzle-kit';
 
 import { Env } from './app/lib/env.server';
 
+const env = Env.sync();
+
 export default {
 	dialect: 'sqlite',
 	driver: 'turso',
 	dbCredentials: {
-		url: Env.DB_URL,
-		authToken: Env.DB_AUTH_TOKEN,
+		url: env.DB_URL,
+		authToken: env.DB_AUTH_TOKEN,
 	},
 	schema: './app/lib/db/schema.server.ts',
 	out: './app/lib/db/migrations',

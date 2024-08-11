@@ -1,21 +1,32 @@
-import 'dotenv/config';
+import path from 'node:path';
 
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
 import { migrate } from 'drizzle-orm/libsql/migrator';
+import { Console, Data, Effect } from 'effect';
 
-import { Env } from '../env.server';
-import * as schema from './schema.server';
+import { DatabaseLayer } from '../app-layer.server';
+import { DatabaseClient } from './db-client.server';
 
-async function main() {
-	const client = createClient({
-		url: Env.DB_URL,
-		authToken: Env.DB_AUTH_TOKEN,
+export class MigrationError extends Data.TaggedError('MigrationError')<{
+	message: string;
+	cause: unknown;
+}> {}
+
+const main = Effect.gen(function* () {
+	let client = yield* DatabaseClient;
+	yield* Effect.tryPromise({
+		try: async () => {
+			await migrate(client, {
+				migrationsFolder: path.join(process.cwd(), 'app/lib/db/migrations'),
+			});
+		},
+		catch: (error) => {
+			return new MigrationError({
+				message: 'Failed to migrate database',
+				cause: error,
+			});
+		},
 	});
+	yield* Console.log('Database migrated');
+});
 
-	const db = drizzle(client, { schema });
-
-	await migrate(db, { migrationsFolder: 'app/db/migrations' });
-}
-
-void main();
+void Effect.runPromise(Effect.provide(main, DatabaseLayer));
