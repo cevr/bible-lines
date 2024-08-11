@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { embed } from 'ai';
+import { embed, embedMany } from 'ai';
 import { Context, Data, Effect, Layer } from 'effect';
 
 import { Env } from './env.server';
@@ -35,6 +35,29 @@ const make = Effect.gen(function* () {
 					});
 				},
 			}).pipe(Effect.withSpan('openai.embed')),
+		embedMany: (texts: string[], size: 'small' | 'large' = 'small') =>
+			Effect.tryPromise({
+				try: async (signal) => {
+					return await embedMany({
+						model: openai.embedding(
+							size === 'small'
+								? 'text-embedding-3-small'
+								: 'text-embedding-3-large',
+						),
+						values: texts,
+						abortSignal: signal,
+						headers: {
+							Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+						},
+					});
+				},
+				catch: (error) => {
+					return new OpenAIError({
+						message: `Failed to embed text`,
+						cause: error,
+					});
+				},
+			}).pipe(Effect.withSpan('openai.embedMany')),
 	});
 });
 

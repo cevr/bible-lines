@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { Context, Data, Effect, Layer } from 'effect';
 
+import { BibleBookNameToNumberMap } from '../bible';
 import type { BibleVersion } from '../bible';
 import { DatabaseClient } from './db-client.server';
 import { verses } from './schema.server';
@@ -27,6 +28,7 @@ const make = Effect.gen(function* () {
 	// const openai = yield* OpenAI;
 
 	return {
+		client: db,
 		bible: {
 			verse: {
 				add: (
@@ -39,14 +41,17 @@ const make = Effect.gen(function* () {
 					Effect.gen(function* () {
 						yield* Effect.tryPromise({
 							try: async () => {
-								await db.insert(verses).values({
-									id: makeId(book, chapter, verse),
-									book,
-									chapter,
-									verse,
-									text,
-									version,
-								});
+								await db
+									.insert(verses)
+									.values({
+										id: makeId(book, chapter, verse),
+										book,
+										chapter,
+										verse,
+										text,
+										version,
+									})
+									.onConflictDoNothing();
 							},
 							catch: (error) => {
 								return new DatabaseError({
@@ -74,23 +79,16 @@ const make = Effect.gen(function* () {
 				) =>
 					Effect.tryPromise({
 						try: async () => {
-							return await db
-								.select({
-									id: verses.id,
-									book: verses.book,
-									chapter: verses.chapter,
-									verse: verses.verse,
-									text: verses.text,
-									version: verses.version,
-								})
-								.from(verses)
-								.where(
+							return await db.query.verses.findFirst({
+								columns: {
+									embedding: false,
+								},
+								where: (verses, { eq, and }) =>
 									and(
 										eq(verses.version, version),
 										eq(verses.id, makeId(book, chapter, verse)),
 									),
-								)
-								.get();
+							});
 						},
 						catch: (error) => {
 							return new DatabaseError({
@@ -102,6 +100,32 @@ const make = Effect.gen(function* () {
 						Effect.withSpan('getVerse'),
 						Effect.flatMap(Effect.fromNullable),
 					),
+				updateEmbedding: (
+					version: BibleVersion,
+					book: number,
+					chapter: number,
+					verse: number,
+					embedding: ArrayBuffer,
+				) =>
+					Effect.tryPromise({
+						try: async () => {
+							await db
+								.update(verses)
+								.set({ embedding })
+								.where(
+									and(
+										eq(verses.id, makeId(book, chapter, verse)),
+										eq(verses.version, version),
+									),
+								);
+						},
+						catch: (error) => {
+							return new DatabaseError({
+								message: `Failed to update verse embedding`,
+								cause: error,
+							});
+						},
+					}).pipe(Effect.withSpan('updateVerseEmbedding')),
 
 				// semanticSearch: (version, query, k = 5) =>
 				// 	Effect.gen(function* () {
@@ -128,18 +152,17 @@ const make = Effect.gen(function* () {
 				get: (version: BibleVersion, book: number) =>
 					Effect.tryPromise({
 						try: async () => {
-							return await db
-								.select({
-									id: verses.id,
-									book: verses.book,
-									chapter: verses.chapter,
-									verse: verses.verse,
-									text: verses.text,
-									version: verses.version,
-								})
-								.from(verses)
-								.where(and(eq(verses.version, version), eq(verses.book, book)))
-								.orderBy(verses.chapter, verses.verse);
+							return await db.query.verses.findMany({
+								columns: {
+									embedding: false,
+								},
+								where: (verses, { eq, and }) =>
+									and(eq(verses.version, version), eq(verses.book, book)),
+								orderBy: (verses, { asc }) => [
+									asc(verses.chapter),
+									asc(verses.verse),
+								],
+							});
 						},
 						catch: (error) => {
 							return new DatabaseError({
@@ -148,29 +171,46 @@ const make = Effect.gen(function* () {
 							});
 						},
 					}).pipe(Effect.withSpan('getBook')),
+				all: (version: BibleVersion) =>
+					Effect.all(
+						Object.values(BibleBookNameToNumberMap).map((book) =>
+							Effect.tryPromise({
+								try: async () => {
+									return await db.query.verses.findMany({
+										where: (verses, { eq, and }) =>
+											and(eq(verses.version, version), eq(verses.book, book)),
+										orderBy: (verses, { asc }) => [
+											asc(verses.chapter),
+											asc(verses.verse),
+										],
+									});
+								},
+								catch: (error) => {
+									return new DatabaseError({
+										message: `Failed to get version ${version} `,
+										cause: error,
+									});
+								},
+							}),
+						),
+					).pipe(Effect.withSpan('getAllBooks')),
 			},
 			chapter: {
 				get: (version: BibleVersion, book: number, chapter: number) =>
 					Effect.tryPromise({
 						try: async () => {
-							return await db
-								.select({
-									id: verses.id,
-									book: verses.book,
-									chapter: verses.chapter,
-									verse: verses.verse,
-									text: verses.text,
-									version: verses.version,
-								})
-								.from(verses)
-								.where(
+							return await db.query.verses.findMany({
+								columns: {
+									embedding: false,
+								},
+								where: (verses, { eq, and }) =>
 									and(
 										eq(verses.version, version),
 										eq(verses.book, book),
 										eq(verses.chapter, chapter),
 									),
-								)
-								.orderBy(verses.verse);
+								orderBy: (verses, { asc }) => asc(verses.verse),
+							});
 						},
 						catch: (error) => {
 							return new DatabaseError({

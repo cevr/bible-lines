@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+	index,
 	integer,
 	sqliteTable,
 	text,
@@ -7,6 +8,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 
 import { BibleVersion } from '../bible';
+import { vector } from './vector.server';
 
 export const users = sqliteTable(
 	'users',
@@ -39,11 +41,12 @@ export const verses = sqliteTable(
 		version: text('version', {
 			enum: Object.values(BibleVersion) as [BibleVersion, ...BibleVersion[]],
 		}).notNull(), // e.g. 'KJV'
-		// embedding: vector('embedding', {
-		// 	length: 1536,
-		// }).notNull(), // e.g. [0.1, 0.2, 0.3]
+		embedding: vector('embedding', {
+			length: 1536,
+		}), // e.g. [0.1, 0.2, 0.3]
 	},
 	(verses) => ({
 		idVersionIndex: uniqueIndex('id_version_idx').on(verses.id, verses.version),
+		bookVersionIndex: index('book_version_idx').on(verses.book, verses.version),
 	}),
 );

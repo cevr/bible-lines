@@ -1,8 +1,7 @@
-import { sql } from 'drizzle-orm';
 import { customType } from 'drizzle-orm/sqlite-core';
 
 export const vector = customType<{
-	data: number[];
+	data: ArrayBuffer;
 	config: { length: number };
 	configRequired: true;
 	driverData: Buffer;
@@ -12,9 +11,11 @@ export const vector = customType<{
 		return `F32_BLOB(${length})`;
 	},
 	fromDriver(value) {
-		return Array.from(new Float32Array(value.buffer));
+		const arrayBuffer = value.buffer as ArrayBuffer;
+		return arrayBuffer;
 	},
 	toDriver(value) {
-		return sql`vector(${JSON.stringify(value)})`;
+		const buffer = Buffer.from(value);
+		return buffer;
 	},
 });
