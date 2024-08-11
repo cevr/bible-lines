@@ -140,13 +140,8 @@ const make = Effect.gen(function* () {
 
 						return yield* Effect.tryPromise({
 							try: async () => {
-								return await db.query.verses.findMany({
-									columns: {
-										embedding: false,
-									},
-									orderBy: sql`vector_distance_cos(embedding, vector(${embedding}))`,
-									limit: k,
-								});
+								const query = sql`SELECT id, book, chapter, verse, text, version FROM verses WHERE rowid IN vector_top_k('verses_embedding_idx', vector(${embedding}), ${JSON.stringify(k)});`;
+								return (await db.all(query)) as Verse[];
 							},
 							catch: (error) => {
 								return new DatabaseError({
