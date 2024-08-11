@@ -1,11 +1,11 @@
 {
-	"extends": ["@cvr/config/typescript/app"],
-	"compilerOptions": {
-		"jsx": "react-jsx",
-		"paths": {
-			"~/*": ["./*"]
-		},
-		"types": ["vitest/importMeta"]
-	},
-	"include": ["**/*.ts", "**/*.tsx"]
+  "extends": ["@cvr/config/typescript/app"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "paths": {
+      "~/*": ["./*"]
+    },
+    "types": ["vitest/importMeta"]
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
 }

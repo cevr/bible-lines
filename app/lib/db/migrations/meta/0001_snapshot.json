@@ -48,16 +48,12 @@
       "indexes": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         },
         "email_idx": {
           "name": "email_idx",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -114,18 +110,12 @@
       "indexes": {
         "id_version_idx": {
           "name": "id_version_idx",
-          "columns": [
-            "id",
-            "version"
-          ],
+          "columns": ["id", "version"],
           "isUnique": true
         },
         "book_version_idx": {
           "name": "book_version_idx",
-          "columns": [
-            "book",
-            "version"
-          ],
+          "columns": ["book", "version"],
           "isUnique": false
         }
       },

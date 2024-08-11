@@ -6,51 +6,51 @@ import { defineConfig } from 'vitest/config';
 const MODE = process.env.NODE_ENV;
 
 export default defineConfig({
-	build: {
-		cssMinify: MODE === 'production',
+  build: {
+    cssMinify: MODE === 'production',
 
-		rollupOptions: {
-			external: [/node:.*/, 'stream', 'crypto', 'fsevents'],
-		},
+    rollupOptions: {
+      external: [/node:.*/, 'stream', 'crypto', 'fsevents'],
+    },
 
-		assetsInlineLimit: (source: string) => {
-			if (source.endsWith('sprite.svg')) {
-				return false;
-			}
-		},
+    assetsInlineLimit: (source: string) => {
+      if (source.endsWith('sprite.svg')) {
+        return false;
+      }
+    },
 
-		sourcemap: true,
-	},
-	plugins: [
-		remix({
-			future: {
-				v3_fetcherPersist: true,
-				v3_relativeSplatPath: true,
-				v3_throwAbortReason: true,
-			},
-			ignoredRouteFiles: ['**/*'],
-			serverModuleFormat: 'esm',
-			routes: async (defineRoutes) => {
-				return flatRoutes('routes', defineRoutes, {
-					ignoredRouteFiles: [
-						'.*',
-						'**/*.css',
-						'**/*.test.{js,jsx,ts,tsx}',
-						'**/__*.*',
-						// This is for server-side utilities you want to colocate
-						// next to your routes without making an additional
-						// directory. If you need a route that includes "server" or
-						// "client" in the filename, use the escape brackets like:
-						// my-route.[server].tsx
-						'**/*.server.*',
-						'**/*.client.*',
-					],
-				});
-			},
-		}),
-		tsconfigPaths(),
-	],
-	test: {
-		includeSource: ['app/lib/**/*.{ts,tsx}', 'app/routes/**/*.test.{ts,tsx}'],
-	},
+    sourcemap: true,
+  },
+  plugins: [
+    remix({
+      future: {
+        v3_fetcherPersist: true,
+        v3_relativeSplatPath: true,
+        v3_throwAbortReason: true,
+      },
+      ignoredRouteFiles: ['**/*'],
+      serverModuleFormat: 'esm',
+      routes: async (defineRoutes) => {
+        return flatRoutes('routes', defineRoutes, {
+          ignoredRouteFiles: [
+            '.*',
+            '**/*.css',
+            '**/*.test.{js,jsx,ts,tsx}',
+            '**/__*.*',
+            // This is for server-side utilities you want to colocate
+            // next to your routes without making an additional
+            // directory. If you need a route that includes "server" or
+            // "client" in the filename, use the escape brackets like:
+            // my-route.[server].tsx
+            '**/*.server.*',
+            '**/*.client.*',
+          ],
+        });
+      },
+    }),
+    tsconfigPaths(),
+  ],
+  test: {
+    includeSource: ['app/lib/**/*.{ts,tsx}', 'app/routes/**/*.test.{ts,tsx}'],
+  },
 });

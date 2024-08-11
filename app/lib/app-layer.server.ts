@@ -8,10 +8,10 @@ import { OpenAI } from './openai';
 // import { OpenAI } from './openai';
 
 export const DatabaseLayer = DatabaseClient.Live.pipe(
-	Layer.provideMerge(Env.Live),
+  Layer.provideMerge(Env.Live),
 );
 
 export const AppLayerLive = Database.Live.pipe(
-	Layer.provideMerge(OpenAI.Live),
-	Layer.provideMerge(DatabaseLayer),
+  Layer.provideMerge(OpenAI.Live),
+  Layer.provideMerge(DatabaseLayer),
 );

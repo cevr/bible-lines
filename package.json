@@ -35,7 +35,7 @@
     "valibot": "^0.37.0"
   },
   "devDependencies": {
-    "@cvr/config": "^0.2.2",
+    "@cvr/config": "^0.3.1",
     "@effect/vitest": "^0.8.3",
     "@remix-run/dev": "^2.11.1",
     "@types/react": "^18.3.3",
