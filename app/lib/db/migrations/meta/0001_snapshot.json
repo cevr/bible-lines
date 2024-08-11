@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "cff4942b-ca69-4183-be56-e70ecf2d139f",
+  "id": "d175c01b-a886-4a55-a6e9-5edf42fea54a",
   "prevId": "5852c5be-3c41-4b5e-a1ae-90008e48dc9d",
   "tables": {
     "users": {
@@ -112,7 +112,7 @@
         },
         "embedding": {
           "name": "embedding",
-          "type": "F32_BLOB(1536)",
+          "type": "F32_BLOB(64)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -132,14 +132,6 @@
           "columns": [
             "book",
             "version"
-          ],
-          "isUnique": false
-        },
-        "chapter_verse_idx": {
-          "name": "chapter_verse_idx",
-          "columns": [
-            "chapter",
-            "verse"
           ],
           "isUnique": false
         }

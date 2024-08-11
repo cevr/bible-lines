@@ -1,1 +1,0 @@
-DROP INDEX IF EXISTS `chapter_verse_idx`;

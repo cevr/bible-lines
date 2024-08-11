@@ -42,7 +42,7 @@ export const verses = sqliteTable(
 			enum: Object.values(BibleVersion) as [BibleVersion, ...BibleVersion[]],
 		}).notNull(), // e.g. 'KJV'
 		embedding: vector('embedding', {
-			length: 1536,
+			length: 64,
 		}), // e.g. [0.1, 0.2, 0.3]
 	},
 	(verses) => ({
