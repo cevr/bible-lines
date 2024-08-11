@@ -15,6 +15,13 @@
       "when": 1723394082921,
       "tag": "0001_curious_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1723394174856,
+      "tag": "0002_charming_gwen_stacy",
+      "breakpoints": true
     }
   ]
 }

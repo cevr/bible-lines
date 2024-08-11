@@ -1,0 +1,1 @@
+ALTER TABLE `verses` ADD `embedding` F32_BLOB(3072);
