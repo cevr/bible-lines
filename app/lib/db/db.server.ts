@@ -140,7 +140,7 @@ const make = Effect.gen(function* () {
 
             return yield* Effect.tryPromise({
               try: async () => {
-                const query = sql`SELECT id, book, chapter, verse, text, version FROM verses WHERE rowid IN vector_top_k('verses_embedding_idx', vector(${embedding}), ${JSON.stringify(k)});`;
+                const query = sql`SELECT id, book, chapter, verse, text, version FROM verses WHERE rowid IN vector_top_k('verses_embedding_idx', vector(${embedding}), cast(${k} as int));`;
                 return (await db.all(query)) as Verse[];
               },
               catch: (error) => {
