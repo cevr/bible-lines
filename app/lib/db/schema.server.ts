@@ -50,3 +50,11 @@ export const verses = sqliteTable(
     bookVersionIndex: index('book_version_idx').on(verses.book, verses.version),
   }),
 );
+
+export const egw = sqliteTable('egw', {
+  id: text('id').primaryKey(),
+  text: text('text').notNull(),
+  embedding: vector('embedding', {
+    length: 3072,
+  }),
+});

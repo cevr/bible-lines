@@ -106,13 +106,13 @@ const make = Effect.gen(function* () {
           book: number,
           chapter: number,
           verse: number,
-          embedding: ArrayBuffer,
+          embedding: Float32Array,
         ) =>
           Effect.tryPromise({
             try: async () => {
               await db
                 .update(verses)
-                .set({ embedding })
+                .set({ embedding: embedding.buffer })
                 .where(
                   and(
                     eq(verses.id, makeId(book, chapter, verse)),

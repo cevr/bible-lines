@@ -2,7 +2,7 @@ import { Effect } from 'effect';
 
 import { AppLayerLive } from '../app/lib/app-layer.server';
 import { Database } from '../app/lib/db/db.server';
-import kjv from '../assets/kjv.json';
+import kjv from '../assets/bible/kjv.json';
 
 const main = Effect.gen(function* () {
   const db = yield* Database;
