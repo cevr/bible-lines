@@ -1,4 +1,4 @@
-import { Console, Effect } from 'effect';
+import { Effect } from 'effect';
 
 import { AppLayerLive } from '~/app/lib/app-layer.server';
 import { BibleBookNumberToNameMap, BibleVersion } from '~/app/lib/bible';
@@ -11,7 +11,7 @@ const main = Effect.gen(function* () {
   const books = yield* database.bible.book.all(BibleVersion.KJV);
   let totalBooks = books.length;
   let bookCount = 0;
-  yield* Console.log(`Embedding ${totalBooks} books`);
+  yield* Effect.log(`Embedding ${totalBooks} books`);
   yield* Effect.all(
     books.map((verses) =>
       Effect.gen(function* () {
@@ -22,7 +22,7 @@ const main = Effect.gen(function* () {
         const results = yield* openai
           .embedMany(verses.map((verse) => verse.text))
           .pipe(Effect.orDie);
-        yield* Console.log(
+        yield* Effect.log(
           `Retrieved ${verses.length} embeddings for book ${book}`,
         );
 
@@ -41,11 +41,11 @@ const main = Effect.gen(function* () {
               )
               .pipe(
                 Effect.tapError((error) => {
-                  return Console.error(error);
+                  return Effect.logError(error);
                 }),
                 Effect.orDie,
                 Effect.tap(
-                  Console.log(
+                  Effect.log(
                     `Embedded ${++versesCount} of ${totalVerses} verses in book ${book}`,
                   ),
                 ),
@@ -55,7 +55,7 @@ const main = Effect.gen(function* () {
             concurrency: 250,
           },
         ).pipe(Effect.orDie);
-        yield* Console.log(`Embedded ${++bookCount} of ${totalBooks}`);
+        yield* Effect.log(`Embedded ${++bookCount} of ${totalBooks}`);
       }),
     ),
     {

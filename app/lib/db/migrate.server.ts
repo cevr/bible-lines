@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 import { migrate } from 'drizzle-orm/libsql/migrator';
-import { Console, Data, Effect } from 'effect';
+import { Data, Effect } from 'effect';
 
 import { DatabaseLayer } from '../app-layer.server';
 import { DatabaseClient } from './db-client.server';
@@ -26,7 +26,7 @@ const main = Effect.gen(function* () {
       });
     },
   });
-  yield* Console.log('Database migrated');
+  yield* Effect.log('Database migrated');
 });
 
 void Effect.runPromise(Effect.provide(main, DatabaseLayer));

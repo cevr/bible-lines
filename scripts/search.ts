@@ -1,4 +1,4 @@
-import { Console, Effect } from 'effect';
+import { Effect } from 'effect';
 
 import { AppLayerLive } from '~/app/lib/app-layer.server';
 import { BibleBookNumberToNameMap, BibleVersion } from '~/app/lib/bible';
@@ -10,7 +10,7 @@ const main = Effect.gen(function* () {
     BibleVersion.KJV,
     'What is truth?',
   );
-  yield* Console.log(
+  yield* Effect.log(
     verses
       .map(
         (verse) =>

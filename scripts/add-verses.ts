@@ -1,4 +1,4 @@
-import { Console, Effect } from 'effect';
+import { Effect } from 'effect';
 
 import { AppLayerLive } from '../app/lib/app-layer.server';
 import { Database } from '../app/lib/db/db.server';
@@ -21,14 +21,14 @@ const main = Effect.gen(function* () {
   const ops = verses.map((verse) =>
     db.bible.verse
       .add('kjv', verse.book, verse.chapter, verse.verse, verse.text)
-      .pipe(Effect.flatMap(() => Console.log(`${++count}/${total}`))),
+      .pipe(Effect.flatMap(() => Effect.log(`${++count}/${total}`))),
   );
   yield* Effect.all(ops, {
     concurrency: 50,
   });
 }).pipe(
   Effect.catchAll((error) =>
-    Console.error(error).pipe(
+    Effect.logError(error).pipe(
       Effect.map(() => Effect.die(new Error('Failed to add verses'))),
     ),
   ),
