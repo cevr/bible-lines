@@ -26,10 +26,10 @@ const main = Effect.gen(function* () {
           `Retrieved ${verses.length} embeddings for book ${book}`,
         );
 
-        let totalVerses = results.embeddings.length;
+        let totalVerses = results.length;
         let versesCount = 0;
         yield* Effect.all(
-          results.embeddings.map((embedding, index) => {
+          results.map((embedding, index) => {
             const verse = verses[index]!;
             return database.bible.verse
               .updateEmbedding(
@@ -37,7 +37,7 @@ const main = Effect.gen(function* () {
                 verse.book,
                 verse.chapter,
                 verse.verse,
-                new Float32Array(embedding),
+                embedding,
               )
               .pipe(
                 Effect.tapError((error) => {

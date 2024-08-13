@@ -3,9 +3,8 @@ import { Context, Data, Effect, Layer } from 'effect';
 
 import { BibleBookNameToNumberMap } from '../bible';
 import type { BibleVersion } from '../bible';
-import { OpenAI } from '../openai';
 import { DatabaseClient } from './db-client.server';
-import { verses } from './schema.server';
+import { egw, verses } from './schema.server';
 
 export class DatabaseError extends Data.TaggedError('DatabaseError' as const)<{
   message: string;
@@ -21,12 +20,22 @@ export interface Verse {
   version: BibleVersion;
 }
 
-const makeId = (book: number, chapter: number, verse: number) =>
+interface EGW {
+  id: string;
+  refcode: string;
+  text: string;
+}
+
+const makeBibleVerseId = (book: number, chapter: number, verse: number) =>
   `${book}:${chapter}:${verse}`;
+
+// this is a utility function to clean up refcodes
+// eg. '1T 222.1' -> '1t222.1'
+const cleanRefcode = (refcode: string) =>
+  refcode.replace(/[\s-]/g, '').toLowerCase();
 
 const make = Effect.gen(function* () {
   const db = yield* DatabaseClient;
-  const openai = yield* OpenAI;
 
   return {
     client: db,
@@ -45,7 +54,7 @@ const make = Effect.gen(function* () {
                 await db
                   .insert(verses)
                   .values({
-                    id: makeId(book, chapter, verse),
+                    id: makeBibleVerseId(book, chapter, verse),
                     book,
                     chapter,
                     verse,
@@ -87,7 +96,7 @@ const make = Effect.gen(function* () {
                 where: (verses, { eq, and }) =>
                   and(
                     eq(verses.version, version),
-                    eq(verses.id, makeId(book, chapter, verse)),
+                    eq(verses.id, makeBibleVerseId(book, chapter, verse)),
                   ),
               });
             },
@@ -115,7 +124,7 @@ const make = Effect.gen(function* () {
                 .set({ embedding: embedding.buffer })
                 .where(
                   and(
-                    eq(verses.id, makeId(book, chapter, verse)),
+                    eq(verses.id, makeBibleVerseId(book, chapter, verse)),
                     eq(verses.version, version),
                   ),
                 );
@@ -133,23 +142,29 @@ const make = Effect.gen(function* () {
             Effect.withSpan('updateVerseEmbedding'),
           ),
 
-        semanticSearch: (version: BibleVersion, query: string, k = 5) =>
+        semanticSearch: (
+          version: BibleVersion,
+          embedding: Float32Array,
+          k = 5,
+        ) =>
           Effect.gen(function* () {
-            const result = yield* openai.embed(query);
-            const embedding = new Float32Array(result.embedding).buffer;
-
             return yield* Effect.tryPromise({
               try: async () => {
-                const query = sql`SELECT id, book, chapter, verse, text, version FROM verses WHERE rowid IN vector_top_k('verses_embedding_idx', vector(${embedding}), cast(${k} as int));`;
+                const query = sql`SELECT id, book, chapter, verse, text, version FROM verses WHERE rowid IN vector_top_k('verses_embedding_idx', vector(${embedding.buffer}), cast(${k} as int));`;
                 return (await db.all(query)) as Verse[];
               },
               catch: (error) => {
                 return new DatabaseError({
-                  message: `Failed to search for verse in version ${version} with query ${query}`,
+                  message: `Failed to search for verse in version ${version}`,
                   cause: error,
                 });
               },
-            }).pipe(Effect.withSpan('semanticVerseSearch'));
+            }).pipe(
+              Effect.retry({
+                times: 3,
+              }),
+              Effect.withSpan('semanticVerseSearch'),
+            );
           }),
       },
       book: {
@@ -227,6 +242,132 @@ const make = Effect.gen(function* () {
             },
           }).pipe(Effect.withSpan('getChapter')),
       },
+    },
+    egw: {
+      add: (
+        book: string,
+        key: number,
+        refcode_short: string,
+        refcode_long: string,
+        content: string,
+        embedding?: Float32Array,
+      ) =>
+        Effect.tryPromise({
+          try: async () => {
+            await db
+              .insert(egw)
+              .values({
+                book,
+                id: cleanRefcode(refcode_short),
+                key,
+                refcode: refcode_long,
+                text: content,
+                embedding: embedding?.buffer,
+              })
+              .onConflictDoNothing();
+          },
+          catch: (error) => {
+            return new DatabaseError({
+              message: `Failed to add EGW`,
+              cause: error,
+            });
+          },
+        }).pipe(Effect.withSpan('addEGW')),
+      addMany: (
+        passages: {
+          book: string;
+          key: number;
+          refcode_short: string;
+          refcode_long: string;
+          content: string;
+          embedding?: Float32Array;
+        }[],
+      ) =>
+        Effect.tryPromise({
+          try: async () => {
+            await db.batch(
+              passages.map((passage) =>
+                db
+                  .insert(egw)
+                  .values({
+                    book: passage.book,
+                    id: cleanRefcode(passage.refcode_short),
+                    key: passage.key,
+                    refcode: passage.refcode_long,
+                    text: passage.content,
+                    embedding: passage.embedding?.buffer,
+                  })
+                  .onConflictDoNothing(),
+              ) as any,
+            );
+          },
+          catch: (error) => {
+            return new DatabaseError({
+              message: `Failed to add EGW`,
+              cause: error,
+            });
+          },
+        }).pipe(
+          Effect.retry({
+            times: 3,
+          }),
+          Effect.withSpan('addManyEGW'),
+        ),
+      get: (refcode_short: string) =>
+        Effect.tryPromise({
+          try: async () => {
+            return await db.query.egw.findFirst({
+              columns: {
+                embedding: false,
+              },
+              where: (egw, { eq }) => eq(egw.id, cleanRefcode(refcode_short)),
+            });
+          },
+          catch: (error) => {
+            return new DatabaseError({
+              message: `Failed to get EGW`,
+              cause: error,
+            });
+          },
+        }).pipe(Effect.withSpan('getEGW')),
+      updateEmbedding: (refcode_short: string, embedding: Float32Array) =>
+        Effect.tryPromise({
+          try: async () => {
+            await db
+              .update(egw)
+              .set({ embedding: embedding.buffer })
+              .where(eq(egw.id, cleanRefcode(refcode_short)));
+          },
+          catch: (error) => {
+            return new DatabaseError({
+              message: `Failed to update EGW embedding`,
+              cause: error,
+            });
+          },
+        }).pipe(
+          Effect.retry({
+            times: 3,
+          }),
+          Effect.withSpan('updateEGWEmbedding'),
+        ),
+      semanticSearch: (embedding: Float32Array, k = 5) =>
+        Effect.gen(function* () {
+          // const result = yield* openai.embed(query);
+          // const embedding = new Float32Array(result.embedding).buffer;
+
+          return yield* Effect.tryPromise({
+            try: async () => {
+              const query = sql`SELECT id, refcode, text FROM egw WHERE rowid IN vector_top_k('egw_embedding_idx', vector(${embedding.buffer}), cast(${k} as int));`;
+              return (await db.all(query)) as EGW[];
+            },
+            catch: (error) => {
+              return new DatabaseError({
+                message: `Failed to search for EGW with embedding`,
+                cause: error,
+              });
+            },
+          }).pipe(Effect.withSpan('semanticEGWSearch'));
+        }),
     },
   };
 });

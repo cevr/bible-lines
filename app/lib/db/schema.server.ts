@@ -51,10 +51,19 @@ export const verses = sqliteTable(
   }),
 );
 
-export const egw = sqliteTable('egw', {
-  id: text('id').primaryKey(),
-  text: text('text').notNull(),
-  embedding: vector('embedding', {
-    length: 3072,
+export const egw = sqliteTable(
+  'egw',
+  {
+    id: text('id').primaryKey(),
+    book: text('book').notNull(),
+    key: integer('key').notNull(),
+    refcode: text('refcode').notNull(),
+    text: text('text').notNull(),
+    embedding: vector('embedding', {
+      length: 3072,
+    }),
+  },
+  (egw) => ({
+    bookKeyIndex: uniqueIndex('book_key_idx').on(egw.book, egw.key),
   }),
-});
+);

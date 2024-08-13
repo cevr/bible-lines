@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8f1075b7-78e2-4e2d-af13-9bc05579295a",
+  "id": "be7592ed-3ead-452e-af81-1055c7a85f98",
   "prevId": "7d230d34-b284-4950-af04-ba4dd14bd9d8",
   "tables": {
     "egw": {
@@ -11,6 +11,27 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "book": {
+          "name": "book",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "refcode": {
+          "name": "refcode",
+          "type": "text",
+          "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
@@ -29,7 +50,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "book_key_idx": {
+          "name": "book_key_idx",
+          "columns": [
+            "book",
+            "key"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}

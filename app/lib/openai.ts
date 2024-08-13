@@ -51,7 +51,10 @@ const make = Effect.gen(function* () {
             cause: error,
           });
         },
-      }).pipe(Effect.withSpan('openai.embed')),
+      }).pipe(
+        Effect.map((res) => new Float32Array(res.embedding)),
+        Effect.withSpan('openai.embed'),
+      ),
     embedMany: (
       texts: string[],
       {
@@ -85,7 +88,12 @@ const make = Effect.gen(function* () {
             cause: error,
           });
         },
-      }).pipe(Effect.withSpan('openai.embedMany')),
+      }).pipe(
+        Effect.map((res) =>
+          res.embeddings.map((embedding) => new Float32Array(embedding)),
+        ),
+        Effect.withSpan('openai.embedMany'),
+      ),
   });
 });
 
