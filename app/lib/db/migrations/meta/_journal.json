@@ -36,6 +36,27 @@
       "when": 1723564756560,
       "tag": "0004_fancy_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1723574623062,
+      "tag": "0005_romantic_the_watchers",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1723588078585,
+      "tag": "0006_cute_night_thrasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1723588102678,
+      "tag": "0007_abnormal_korath",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { Context, Data, Effect, Layer } from 'effect';
 
 import { BibleBookNameToNumberMap } from '../bible';
@@ -90,9 +90,9 @@ const make = Effect.gen(function* () {
           Effect.tryPromise({
             try: async () => {
               return await db.query.verses.findFirst({
-                columns: {
-                  embedding: false,
-                },
+                // columns: {
+                //   embedding: false,
+                // },
                 where: (verses, { eq, and }) =>
                   and(
                     eq(verses.version, version),
@@ -111,23 +111,23 @@ const make = Effect.gen(function* () {
             Effect.flatMap(Effect.fromNullable),
           ),
         updateEmbedding: (
-          version: BibleVersion,
-          book: number,
-          chapter: number,
-          verse: number,
-          embedding: Float32Array,
+          _version: BibleVersion,
+          _book: number,
+          _chapter: number,
+          _verse: number,
+          _embedding: Float32Array,
         ) =>
           Effect.tryPromise({
             try: async () => {
-              await db
-                .update(verses)
-                .set({ embedding: embedding.buffer })
-                .where(
-                  and(
-                    eq(verses.id, makeBibleVerseId(book, chapter, verse)),
-                    eq(verses.version, version),
-                  ),
-                );
+              // await db
+              //   .update(verses)
+              //   .set({ embedding: embedding.buffer })
+              //   .where(
+              //     and(
+              //       eq(verses.id, makeBibleVerseId(book, chapter, verse)),
+              //       eq(verses.version, version),
+              //     ),
+              //   );
             },
             catch: (error) => {
               return new DatabaseError({
@@ -172,9 +172,9 @@ const make = Effect.gen(function* () {
           Effect.tryPromise({
             try: async () => {
               return await db.query.verses.findMany({
-                columns: {
-                  embedding: false,
-                },
+                // columns: {
+                //   embedding: false,
+                // },
                 where: (verses, { eq, and }) =>
                   and(eq(verses.version, version), eq(verses.book, book)),
                 orderBy: (verses, { asc }) => [
@@ -196,9 +196,9 @@ const make = Effect.gen(function* () {
               Effect.tryPromise({
                 try: async () => {
                   return await db.query.verses.findMany({
-                    columns: {
-                      embedding: false,
-                    },
+                    // columns: {
+                    //   embedding: false,
+                    // },
                     where: (verses, { eq, and }) =>
                       and(eq(verses.version, version), eq(verses.book, book)),
                     orderBy: (verses, { asc }) => [
@@ -222,9 +222,9 @@ const make = Effect.gen(function* () {
           Effect.tryPromise({
             try: async () => {
               return await db.query.verses.findMany({
-                columns: {
-                  embedding: false,
-                },
+                // columns: {
+                //   embedding: false,
+                // },
                 where: (verses, { eq, and }) =>
                   and(
                     eq(verses.version, version),
@@ -250,7 +250,7 @@ const make = Effect.gen(function* () {
         refcode_short: string,
         refcode_long: string,
         content: string,
-        embedding?: Float32Array,
+        // embedding?: Float32Array,
       ) =>
         Effect.tryPromise({
           try: async () => {
@@ -262,7 +262,7 @@ const make = Effect.gen(function* () {
                 key,
                 refcode: refcode_long,
                 text: content,
-                embedding: embedding?.buffer,
+                // embedding: embedding?.buffer,
               })
               .onConflictDoNothing();
           },
@@ -295,7 +295,7 @@ const make = Effect.gen(function* () {
                     key: passage.key,
                     refcode: passage.refcode_long,
                     text: passage.content,
-                    embedding: passage.embedding?.buffer,
+                    // embedding: passage.embedding?.buffer,
                   })
                   .onConflictDoNothing(),
               ) as any,
@@ -317,9 +317,9 @@ const make = Effect.gen(function* () {
         Effect.tryPromise({
           try: async () => {
             return await db.query.egw.findFirst({
-              columns: {
-                embedding: false,
-              },
+              // columns: {
+              //   embedding: false,
+              // },
               where: (egw, { eq }) => eq(egw.id, cleanRefcode(refcode_short)),
             });
           },
@@ -330,26 +330,26 @@ const make = Effect.gen(function* () {
             });
           },
         }).pipe(Effect.withSpan('getEGW')),
-      updateEmbedding: (refcode_short: string, embedding: Float32Array) =>
-        Effect.tryPromise({
-          try: async () => {
-            await db
-              .update(egw)
-              .set({ embedding: embedding.buffer })
-              .where(eq(egw.id, cleanRefcode(refcode_short)));
-          },
-          catch: (error) => {
-            return new DatabaseError({
-              message: `Failed to update EGW embedding`,
-              cause: error,
-            });
-          },
-        }).pipe(
-          Effect.retry({
-            times: 3,
-          }),
-          Effect.withSpan('updateEGWEmbedding'),
-        ),
+      // updateEmbedding: (refcode_short: string, embedding: Float32Array) =>
+      //   Effect.tryPromise({
+      //     try: async () => {
+      //       await db
+      //         .update(egw)
+      //         .set({ embedding: embedding.buffer })
+      //         .where(eq(egw.id, cleanRefcode(refcode_short)));
+      //     },
+      //     catch: (error) => {
+      //       return new DatabaseError({
+      //         message: `Failed to update EGW embedding`,
+      //         cause: error,
+      //       });
+      //     },
+      //   }).pipe(
+      //     Effect.retry({
+      //       times: 3,
+      //     }),
+      //     Effect.withSpan('updateEGWEmbedding'),
+      //   ),
       semanticSearch: (embedding: Float32Array, k = 5) =>
         Effect.gen(function* () {
           // const result = yield* openai.embed(query);
