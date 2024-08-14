@@ -3,14 +3,13 @@ import { Effect } from 'effect';
 import { AppLayerLive } from '~/app/lib/app-layer.server';
 import { BibleBookNumberToNameMap, BibleVersion } from '~/app/lib/bible';
 import { Database } from '~/app/lib/db/db.server';
-import { OpenAI } from '~/app/lib/openai';
 
 const main = Effect.gen(function* () {
   const database = yield* Database;
-  const openai = yield* OpenAI;
-  const verses = yield* database.bible.verse.semanticSearch(
+
+  const verses = yield* database.bible.verse.fullTextSearch(
     BibleVersion.KJV,
-    yield* openai.embed('What is truth?'),
+    'not with the blood of goats and calves, but with his own blood',
   );
   yield* Effect.log(
     verses
